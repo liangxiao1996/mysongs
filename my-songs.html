@@ -1,0 +1,2382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的音乐歌单</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+      color: white;
+      padding: 25px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 1.8em;
+      margin-bottom: 8px;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      font-size: 1em;
+      opacity: 0.9;
+    }
+
+    .playlist {
+      padding: 20px;
+    }
+
+    .song-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 12px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .song-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      border-color: #ff6b6b;
+    }
+
+    .song-item.playing {
+      background: linear-gradient(90deg, #74b9ff, #0984e3);
+      color: white;
+    }
+
+    .song-number {
+      width: 35px;
+      height: 35px;
+      background: #f1f2f6;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.9em;
+      margin-right: 12px;
+    }
+
+    .song-item.playing .song-number {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .song-info {
+      flex: 1;
+    }
+
+    .song-title {
+      font-size: 1.1em;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .song-artist {
+      font-size: 0.85em;
+      opacity: 0.7;
+    }
+
+    .song-duration {
+      padding: 4px 8px;
+      background: #f1f2f6;
+      border-radius: 20px;
+      font-size: 0.8em;
+    }
+
+    .song-item.playing .song-duration {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .player-container {
+      padding: 0 20px 20px;
+    }
+
+    .audio-player {
+      width: 100%;
+      margin-top: 15px;
+      height: 50px;
+    }
+
+    .now-playing {
+      text-align: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: #ee5a24;
+      font-size: 0.95em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 分页样式 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      padding: 0 10px;
+    }
+
+    .pagination button {
+      background: #74b9ff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 0 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .pagination button:disabled {
+      background: #ddd;
+      cursor: not-allowed;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #0984e3;
+    }
+
+    .pagination .page-info {
+      margin: 0 15px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .page-size-selector {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .page-size-selector label {
+      margin-right: 10px;
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .page-size-selector select {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 5px;
+      }
+
+      .container {
+        border-radius: 15px;
+      }
+
+      .header {
+        padding: 20px 15px;
+      }
+
+      .header h1 {
+        font-size: 1.6em;
+      }
+
+      .playlist {
+        padding: 15px;
+      }
+
+      .song-item {
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+
+      .song-number {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8em;
+        margin-right: 10px;
+      }
+
+      .song-title {
+        font-size: 1em;
+      }
+
+      .song-artist {
+        font-size: 0.8em;
+      }
+     
+      .song-type-1 {
+        background: linear-gradient(90deg, #4CAF50, #8BC34A);
+        color: white;
+        font-weight: bold;
+      }
+
+      .song-type-2 {
+        background: linear-gradient(90deg, #FF9800, #FFC107);
+        color: white;
+        font-weight: bold;
+      }
+
+      .song-type-3 {
+        background: linear-gradient(90deg, #2196F3, #03A9F4);
+        color: white;
+        font-weight: bold;
+      }
+      .song-duration {
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.8em;
+      }
+
+      .song-item.playing .song-duration {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .player-container {
+        padding: 0 15px 15px;
+      }
+
+      .pagination {
+        flex-wrap: wrap;
+      }
+
+      .pagination button {
+        padding: 8px 12px;
+        margin: 3px;
+        font-size: 0.9em;
+      }
+
+      .pagination .page-info {
+        margin: 5px 10px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎵 我的音乐歌单</h1>
+      <p>点击歌曲即可播放</p>
+    </div>
+
+    <div class="playlist" id="playlist">
+      <!-- 歌曲列表将通过JavaScript生成 -->
+    </div>
+
+    <div class="page-size-selector">
+      <label for="pageSize">每页显示:</label>
+      <select id="pageSize">
+        <option value="5">5首</option>
+        <option value="10" selected>10首</option>
+        <option value="15">15首</option>
+        <option value="20">20首</option>
+      </select>
+    </div>
+
+    <div class="pagination" id="pagination">
+      <!-- 分页控件将通过JavaScript生成 -->
+    </div>
+
+    <div class="player-container">
+      <div class="now-playing" id="nowPlaying">
+        当前未播放任何歌曲
+      </div>
+      <audio id="audioPlayer" class="audio-player" controls></audio>
+    </div>
+  </div>
+
+  <script>
+    let songType = {
+      '1': '会唱',
+      '2': '部分会唱',
+      '3': '略会',
+    }
+
+    const songs = [
+      {
+        id: 1,
+        title: "租购",
+        artist: "薛之谦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=19054eb5894c42995350e110338a5a6f"
+      },
+      {
+        id: 2,
+        title: "一半",
+        artist: "薛之谦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=bf6f9bb32f62164811ad50ecd0294eb3"
+      },
+      {
+        id: 3,
+        title: "绅士",
+        artist: "薛之谦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d6caca3903cd758d2b4208bf3e4e50ee"
+      },
+      {
+        id: 4,
+        title: "演员",
+        artist: "薛之谦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=097e777171f692855eae98b6965f9477"
+      },
+      {
+        id: 5,
+        title: "认真的雪",
+        artist: "薛之谦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d2e00cc158db4da18927ac3b01cc371b"
+      },
+      {
+        id: 6,
+        title: "你还要我怎样",
+        artist: "薛之谦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8c6aac48fb5c3759042e4c8699544c6f"
+      },
+      {
+        id: 7,
+        title: "方圆几里",
+        artist: "薛之谦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e76de3be292704bf8b4151734a28ca39"
+      },
+      {
+        id: 8,
+        title: "丑八怪",
+        artist: "薛之谦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5a2073cbc429473e4629b55c81f8b091"
+      },
+      {
+        id: 9,
+        title: "夜曲",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=16c8ab298231370293d16bcf9e5ff9b6"
+      },
+      {
+        id: 10,
+        title: "烟花易冷",
+        artist: "周杰伦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b9fc03df9015d6bff0554a110bf2c84f"
+      },
+      {
+        id: 11,
+        title: "说了再见",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=966c718da96ee29b3b466f773bfa9e2f"
+      },
+      {
+        id: 12,
+        title: "说好的幸福呢",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=892b7ad62499c97a1a994454423e30f6"
+      },
+      {
+        id: 13,
+        title: "晴天",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6d6bc2d6ae2b21943f810a2cd23e2260"
+      },
+      {
+        id: 14,
+        title: "青花瓷",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=37a8f50a9ec3b267c3cc6bec633d9c4a"
+      },
+      {
+        id: 15,
+        title: "七里香",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2c7ceb6cc2340ecc8948e0ace62f0cf8"
+      },
+      {
+        id: 16,
+        title: "安静",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1822697a2ff6ac13824c1b0b3ce44c34"
+      },
+      {
+        id: 17,
+        title: "明明就",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d85c14e02008b7a2f97d55cdc29c2221"
+      },
+      {
+        id: 18,
+        title: "龙卷风",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=dc01cbbb77d98925babbc8dfef7c5d02"
+      },
+      {
+        id: 19,
+        title: "兰亭序",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4ec10b1b7b9beb2f0adb89bbec5f664b"
+      },
+      {
+        id: 20,
+        title: "简单爱",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6e44ce19be5872384fa184b995cce23b"
+      },
+      {
+        id: 21,
+        title: "花海",
+        artist: "周杰伦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3328808cecbd1a1038166003840fddd7"
+      },
+      {
+        id: 22,
+        title: "红尘客栈",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=48729371f20fb048ef4e51d4cd41dbf5"
+      },
+      {
+        id: 23,
+        title: "告白气球",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=688857974673645ce89eda26a36db19d"
+      },
+      {
+        id: 24,
+        title: "反方向的钟",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a6049aab184a305caa906c6bbb8e8233"
+      },
+      {
+        id: 25,
+        title: "发如雪",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1f7e7659b9fff4fb6f71562a61bbc25f"
+      },
+      {
+        id: 26,
+        title: "东风破",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b24ab4ad67a1e7228121180247503e84"
+      },
+      {
+        id: 27,
+        title: "彩虹",
+        artist: "周杰伦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=06fcf5cdf4ee8a6599645d73fe80349f"
+      },
+      {
+        id: 28,
+        title: "不能说的秘密",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=edfc5dd1ac3d58971ab95b3e2700d015"
+      },
+      {
+        id: 29,
+        title: "安静",
+        artist: "周杰伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1822697a2ff6ac13824c1b0b3ce44c34"
+      },
+      {
+        id: 30,
+        title: "单人旅途",
+        artist: "许嵩",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=26724c1ab11a25768227d82afd7f3143"
+      },
+      {
+        id: 31,
+        title: "幻听",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=24f5e7555646965cd7d1a924452b3300"
+      },
+      {
+        id: 32,
+        title: "内线",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=461e6b436da7a36084c98eb51b56bd78"
+      },
+      {
+        id: 33,
+        title: "坏孩子",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=cc3e26966585779f96bfab6c33cebcd3"
+      },
+      {
+        id: 34,
+        title: "摄影艺术",
+        artist: "许嵩",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c7b3b3d19b3ab2089cb2df12c18e2479"
+      },
+      {
+        id: 35,
+        title: "医生",
+        artist: "许嵩",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ddfec6c8ae6b856c586e550c1730ae11"
+      },
+      {
+        id: 36,
+        title: "我想牵着你的手",
+        artist: "许嵩",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=345c3c5cc070319a47f5f9f4b6c90fd9"
+      },
+      {
+        id: 37,
+        title: "雨幕",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=43e910c727e2f84fd81bac21bda43728"
+      },
+      {
+        id: 39,
+        title: "认错",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=83347141c79dc559898e298315d55dfc"
+      },
+      {
+        id: 40,
+        title: "雅俗共赏",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2c8e6a16dfc97915df8bccf4ba1266ee"
+      },
+      {
+        id: 41,
+        title: "天龙八部之宿敌",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9092283e08915874302a9c64032bc79d"
+      },
+      {
+        id: 42,
+        title: "灰色头像",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=cedada59f133879eb04e2f4c5b759efa"
+      },
+      {
+        id: 43,
+        title: "清明雨上",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=17ba99409864591f3006e89595f5d13f"
+      },
+      {
+        id: 44,
+        title: "断桥残雪",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c7df16acf811630cebb6c21d85ec8e3b"
+      },
+      {
+        id: 45,
+        title: "星座书上",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ad3f100048f1bce80bfb2717d0824fd9"
+      },
+      {
+        id: 46,
+        title: "惊鸿一面",
+        artist: "许嵩、黄龄",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4a661fdfbe33e34e8605b1a08c3d3667"
+      },
+      {
+        id: 47,
+        title: "如果当时",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fc89e696a05a6c6b19c94aabe2739293"
+      },
+      {
+        id: 48,
+        title: "你若成风",
+        artist: "许嵩、莫诗旎",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e7023d78db585bdc0d1794b401b3ba7f"
+      },
+      {
+        id: 49,
+        title: "最佳歌手",
+        artist: "许嵩",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b7279d3d023755d7d795a14dc7a28ffc"
+      },
+      {
+        id: 50,
+        title: "半城烟沙",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=636696748242dd25451b30af02328d63"
+      },
+      {
+        id: 51,
+        title: "千百度",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fe75c71646819dc6508922dee8eb8ad6"
+      },
+      {
+        id: 52,
+        title: "玫瑰花的葬礼",
+        artist: "许嵩",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0a335e9374392b72e5965d8f6165e564"
+      },
+      {
+        id: 53,
+        title: "有何不可",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=069c70fe35c4ee9a40866979eae8062d"
+      },
+      {
+        id: 54,
+        title: "庐州月",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=bb97fac0e92485341511f8746e312f1e"
+      },
+      {
+        id: 55,
+        title: "燕归巢",
+        artist: "张靓颖、张杰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0aa52be07214ae1b34b7d0a5858c6028"
+      },
+      {
+        id: 56,
+        title: "叹服",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4bff7a982420c038516d2e1068d7e138"
+      },
+      {
+        id: 57,
+        title: "山水之间",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=df4a1a4566d9520ec75caa62d0b6ffd7"
+      },
+      {
+        id: 58,
+        title: "城府",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2bef39b3c15e19241a0801f451c20533"
+      },
+      {
+        id: 59,
+        title: "多余的解释",
+        artist: "许嵩",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=34d67ecd8f608874d7119eba6bd9ac2f"
+      },
+      {
+        id: 60,
+        title: "素颜",
+        artist: "许嵩、何曼婷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=30c94ae2868e63b1058da7685e0cdf3b"
+      },
+      {
+        id: 61,
+        title: "你让我懂",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3e2ef3eee10a10a1942106035d71e841"
+      },
+      {
+        id: 62,
+        title: "三国杀",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fceea2a456133e4ccb4ff563e7afef7b"
+      },
+      {
+        id: 63,
+        title: "爱丫爱丫",
+        artist: "汪苏泷",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d164d65e43235ff674217d2299ae696b"
+      },
+      {
+        id: 64,
+        title: "忽而今夏",
+        artist: "汪苏泷",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=16c89ccf497286ddae773c3e0d66ddf4"
+      },
+      {
+        id: 65,
+        title: "小星星",
+        artist: "汪苏泷",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=01a9e70b8b6677ece5edbd455a13f642"
+      },
+      {
+        id: 66,
+        title: "巴赫旧约",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4ca6c4c9bcf0e2edaedbdebf637e2b48"
+      },
+      {
+        id: 67,
+        title: "后会无期",
+        artist: "汪苏泷、徐良",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=23e848e785dbcb9a2b1416e4db068d8e"
+      },
+      {
+        id: 68,
+        title: "一笑倾城",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=66b52d64f74eadf627e1a6808659ef6b"
+      },
+      {
+        id: 69,
+        title: "风度",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a2a53febfc4ed4dbff7caa4b379f3823"
+      },
+      {
+        id: 70,
+        title: "年轮",
+        artist: "张碧晨",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=08f0e97321cecb3d0b147d8e05cf4d1e"
+      },
+      {
+        id: 71,
+        title: "不分手的恋爱",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=543a6e13c527e52886e51bbf14191c8f"
+      },
+      {
+        id: 72,
+        title: "剑魂",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b26af693a997dd96b6c1c2433117bf0b"
+      },
+      {
+        id: 73,
+        title: "万有引力",
+        artist: "汪苏泷",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2ac66a8abb349e0f9bbd6a7c28cd5cbf"
+      },
+      {
+        id: 74,
+        title: "有点甜",
+        artist: "汪苏泷、BY2",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=99cfdc717feb7dabcd8a6392d821fc08"
+      },
+      {
+        id: 75,
+        title: "苦笑",
+        artist: "汪苏泷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=85653d1c8ebf5c25fd38a6292bb49774"
+      },
+      {
+        id: 76,
+        title: "悲伤的李白",
+        artist: "徐良",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6a0da4dacb62e963c7e656663d84ffd8"
+      },
+      {
+        id: 77,
+        title: "客官不可以",
+        artist: "徐良、小凌",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5cc662abaae6da155bb8dd42a1f474b8"
+      },
+      {
+        id: 78,
+        title: "坏女孩",
+        artist: "徐良、小凌",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=50e9aa0e6273a8cbc8a1232d54b28951"
+      },
+      {
+        id: 79,
+        title: "月光",
+        artist: "徐良",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0a7589480d408c01828925fff949fb22"
+      },
+      {
+        id: 80,
+        title: "犯贱",
+        artist: "徐良",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=efe8adc031a89e0eb3bfb877fe81b622"
+      },
+      {
+        id: 81,
+        title: "红装",
+        artist: "徐良、阿悄 ",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=bd29d770f83a038b1513187b3fe94e3c"
+      },
+      {
+        id: 82,
+        title: "七秒钟的记忆",
+        artist: "徐良",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=360286003219ae24e387c837d270bd8b"
+      },
+      {
+        id: 83,
+        title: "Always Online",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=16a4e4895905b703ac0f31007a495d4c"
+      },
+      {
+        id: 84,
+        title: "背对背拥抱",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c6b5a741051fcbc1af7531ca2ceecc15"
+      },
+      {
+        id: 85,
+        title: "曹操",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e5cc5b3efaf927a85b97edadd3266239"
+      },
+      {
+        id: 86,
+        title: "江南",
+        artist: "林俊杰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=819b74bd09009e0422b8f563e12ba96e"
+      },
+      {
+        id: 87,
+        title: "可惜没如果",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=57d6eaf8f7e593a2c4b780d8045de5c1"
+      },
+      {
+        id: 88,
+        title: "美人鱼",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=cdae8c7e2faf7f08dc18e78a1d65117b"
+      },
+      {
+        id: 89,
+        title: "那些你很冒险的梦",
+        artist: "林俊杰",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=468a823bd25a585841f4bc5ed3ef945b"
+      },
+      {
+        id: 90,
+        title: "杀手",
+        artist: "林俊杰",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8a23b12123c5601c85db53bbdb7c39c0"
+      },
+      {
+        id: 91,
+        title: "她说",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=880627ff5aff38ac8f3c3d4b1f580828"
+      },
+      {
+        id: 92,
+        title: "小酒窝",
+        artist: "林俊杰、蔡卓妍",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ab7ddf8e72209c0626182cffe03c335b"
+      },
+      {
+        id: 93,
+        title: "修炼爱情",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8748c12719dca9f588b1118ac05f6bf8"
+      },
+      {
+        id: 94,
+        title: "一千年以后",
+        artist: "林俊杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=09698719d79fe3c9607ef125d650dfe3"
+      },
+      {
+        id: 95,
+        title: "备马",
+        artist: "墨绛、智慧baby",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=dbdc645fe0f0dea0ac2243ca9621df5e"
+      },
+      {
+        id: 96,
+        title: "不见春",
+        artist: "Babystop_山竹",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0bc29ce4c6baf30eb4fd06a5ff52e730"
+      },
+      {
+        id: 97,
+        title: "不如",
+        artist: "秦海清",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=7c365ff9eee23026bc00d3ddf19a5367"
+      },
+      {
+        id: 98,
+        title: "不谓侠",
+        artist: "萧忆情Alex",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=acfd75fe35fbb5b176e4c21705e967f7"
+      },
+      {
+        id: 99,
+        title: "参商",
+        artist: "不才",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=52b6d731c2eaaf1254f97ce80a308597"
+      },
+      {
+        id: 100,
+        title: "典狱司",
+        artist: "音频怪物",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=f33b12ff31eb1445e42ef0ce0cdb880a"
+      },
+      {
+        id: 101,
+        title: "风起天阑",
+        artist: "河图",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ed57b50f4b5d9a8aca51f3a6e4542829"
+      },
+      {
+        id: 102,
+        title: "姑娘别哭泣",
+        artist: "柯柯柯啊",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1b537c99761f8f25aefff30b6dce08d5"
+      },
+      {
+        id: 103,
+        title: "荒",
+        artist: "郑鱼",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1d1b5597513df51039d2e6f34f9cb31c"
+      },
+      {
+        id: 104,
+        title: "狂恋你",
+        artist: "旭旭旭",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b54d66f05d3b23ab8dc5d0f74fde3758"
+      },
+      {
+        id: 105,
+        title: "历劫成衣",
+        artist: "Vk",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=eca58bf4d7fc5956f26251c75a5bb145"
+      },
+      {
+        id: 106,
+        title: "明月天涯",
+        artist: "五音Jw",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8865c6c0ab73538c0284db529b742600"
+      },
+      {
+        id: 107,
+        title: "你知道我在等你吗",
+        artist: "王晴",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=91f8421bb8e3072fbe94bd8ac6a33541"
+      },
+      {
+        id: 108,
+        title: "小幸运",
+        artist: "田馥甄",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d9baac2681b355607895b2885f49da37"
+      },
+      {
+        id: 109,
+        title: "说散就散",
+        artist: "袁娅维TIA RAY",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=837d7cec9202b47f077bb7fe8c0c1a08"
+      },
+      {
+        id: 110,
+        title: "入戏太深",
+        artist: "马旭东",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ad2caee32a69de33f26929ccc24572fc"
+      },
+      {
+        id: 111,
+        title: "松烟入墨",
+        artist: "Winky诗[赵景旭]",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=45029b9569bbcba1c43d4e613d5c73e8"
+      },
+      {
+        id: 112,
+        title: "体面",
+        artist: "于文文",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0f57843484d3af06aaea623d66bb286c"
+      },
+      {
+        id: 113,
+        title: "童话镇",
+        artist: "陈一发儿",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=dbf4c9254e435bd743eef04b98094ffa"
+      },
+      {
+        id: 114,
+        title: "晚安",
+        artist: "颜人中",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a6316e2d24b47f1110002d9a7559600e"
+      },
+      {
+        id: 115,
+        title: "晚夜微雨问海棠",
+        artist: "镜予歌、陈亦洺、喧笑",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=36bbc7bdc51a6f4f79ba301d56a567fb"
+      },
+      {
+        id: 116,
+        title: "我们",
+        artist: "乐柠组合",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=7a40b9f618f92c81abca91d5b9b4ecce"
+      },
+      {
+        id: 117,
+        title: "我期待的不是雪",
+        artist: "张妙格",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3805214793174a9ad1a241afdaa14ad8"
+      },
+      {
+        id: 118,
+        title: "小女巫",
+        artist: "小忆",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=72e731866918158020a42a06df3250a5"
+      },
+      {
+        id: 119,
+        title: "笑纳",
+        artist: "花僮",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5da37c67f186a1efc127cc2778d8e7cf"
+      },
+      {
+        id: 120,
+        title: "心愿便利贴",
+        artist: "大Q秉洛",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=44143abb6111d2bfd1e6f564980bb132"
+      },
+      {
+        id: 121,
+        title: "夜探",
+        artist: "小爱的妈",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8dac668e802320a9af3b768fc5e2ca3d"
+      },
+      {
+        id: 122,
+        title: "樱花树下的约定",
+        artist: "柯柯柯啊",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5857ec15eb1963c347fbad0662827d85"
+      },
+      {
+        id: 123,
+        title: "永不失联的爱",
+        artist: "Eric周兴哲",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e6037c95bdf81ffd43d1f714d3ac039a"
+      },
+      {
+        id: 124,
+        title: "雨后人去楼也空",
+        artist: "乐乐很好养",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=f0f1c50866fb90268b69bcee69b1dae7"
+      },
+      {
+        id: 125,
+        title: "爱如潮水",
+        artist: "张信哲",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=03542812844ee77a22e096a9d6974858"
+      },
+      {
+        id: 126,
+        title: "That girl",
+        artist: "Olly Murs",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b32c3c7fa2452e7338bfc6f2283fe8ed"
+      },
+      {
+        id: 127,
+        title: "爱就一个字",
+        artist: "张信哲",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9d51ed48084fd6d6f40c925652bb1860"
+      },
+      {
+        id: 128,
+        title: "白月光与朱砂痣",
+        artist: "大籽",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=53c59250b5c87622a0444e389b7f6fce"
+      },
+      {
+        id: 129,
+        title: "百战成诗",
+        artist: "群星",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9de58e7d8ec907f6ce5b206012720d65"
+      },
+      {
+        id: 130,
+        title: "贝多芬的悲伤",
+        artist: "萧风",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8ba45f8531c6ddd450338dcade11e1dd"
+      },
+      {
+        id: 131,
+        title: "残雪",
+        artist: "蒋蒋",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=eb6ed4264cdcf389f17a0cf903482edd"
+      },
+      {
+        id: 132,
+        title: "吹梦到西洲",
+        artist: "昭爻tsuki",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fb50469da48a8ce34532f2888578b7b8"
+      },
+      {
+        id: 133,
+        title: "蠢货",
+        artist: "喻言",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=96d649dbe1f6151779c064be173d5eec"
+      },
+      {
+        id: 134,
+        title: "从前说",
+        artist: "小阿七",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=56851b29c26109489361b0021a4fdd9e"
+      },
+      {
+        id: 135,
+        title: "错位时空",
+        artist: "艾辰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=453d094587b6d3dd8670c272304eccc2"
+      },
+      {
+        id: 136,
+        title: "大眠",
+        artist: "王心凌",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a7fabf26bf07963e8bfb7705dbb503fc"
+      },
+      {
+        id: 137,
+        title: "多幸运",
+        artist: "韩安旭",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=cbab4ab8d340c977ab800c1ed4d35ed9"
+      },
+      {
+        id: 138,
+        title: "感官先生",
+        artist: "刘凤瑶",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=60365b19b67b68386d95cc6a97ec8656"
+      },
+      {
+        id: 139,
+        title: "鸽子",
+        artist: "徐秉龙",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9955889aa6c7e220971d4b243850e362"
+      },
+      {
+        id: 140,
+        title: "何曾惧",
+        artist: "Vk、五音Jw、Aki阿杰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=f2d7051e172323c093987d5fd3fc4aa2"
+      },
+      {
+        id: 141,
+        title: "嘉宾",
+        artist: "张远",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=96d0defe09dfe43c57ee9ac3b1ea408e"
+      },
+      {
+        id: 142,
+        title: "剑啸江湖",
+        artist: "剑网三",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=cd24c280a5525a1c265f03031cfb1452"
+      },
+      {
+        id: 143,
+        title: "借",
+        artist: "毛不易",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=78a4878841923b540d46fa04f36acbc9"
+      },
+      {
+        id: 144,
+        title: "尽头",
+        artist: "赵方婧",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3ddd5f9076a33915376db19d3a830542"
+      },
+      {
+        id: 145,
+        title: "卡布奇诺",
+        artist: "6诗人",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5fe82c07c44f70e5b5f357f707c04549"
+      },
+      {
+        id: 146,
+        title: "可能否",
+        artist: "木小雅",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1bdb0a5e77e4da50adca5f456d7b9f9c"
+      },
+      {
+        id: 147,
+        title: "来不及说再见",
+        artist: "艾辰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fae53e2460f8405a6bf1524cd2814928"
+      },
+      {
+        id: 148,
+        title: "离别开出花",
+        artist: "南方凯",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8a91297366a9a8dfc0a145a9a2d4620f"
+      },
+      {
+        id: 149,
+        title: "绿色",
+        artist: "陈雪凝",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=39080698852e5cc51f0571ef438db175"
+      },
+      {
+        id: 150,
+        title: "慢慢喜欢你",
+        artist: "莫文蔚",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5b44a396be84f42aca21e9d6e72db78d"
+      },
+      {
+        id: 151,
+        title: "门没锁",
+        artist: "品冠",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3111daf0f4e6bc43b31d97fdb3620062"
+      },
+      {
+        id: 152,
+        title: "漠河舞厅",
+        artist: "刘爽",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1e843e81dcb7ac821177a5944d4ed7fb"
+      },
+      {
+        id: 153,
+        title: "牧马城市",
+        artist: "毛不易",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=62196876245e85ec21f4e88f0980a953"
+      },
+      {
+        id: 154,
+        title: "成都",
+        artist: "赵雷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a06b033b356bfc974c5245d0195086a5"
+      },
+      {
+        id: 155,
+        title: "青山予我",
+        artist: "李蚊香",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c95fc36f14e8ac27f104646f4b8dbf0e"
+      },
+      {
+        id: 156,
+        title: "那家花店",
+        artist: "锦零",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3a4a6433e8c40e901542706b8a220886"
+      },
+      {
+        id: 157,
+        title: "那女孩对我说",
+        artist: "小阿七",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1dc9fbb66a32685fafae4b56273771f4"
+      },
+      {
+        id: 158,
+        title: "你的答案",
+        artist: "阿冗",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=bb78d58530d2f7979e65a064c9e6bb90"
+      },
+      {
+        id: 159,
+        title: "你的酒馆对我打了烊",
+        artist: "陈雪凝",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=49f46b52735d7219c3a8df796bba2716"
+      },
+      {
+        id: 160,
+        title: "暖暖",
+        artist: "梁静茹",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d7e7a2c2b33386e834238ac7cbc3524e"
+      },
+      {
+        id: 161,
+        title: "偏爱",
+        artist: "张芸京",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4a544525c1f78dbdf25361db0e255495"
+      },
+      {
+        id: 162,
+        title: "起风了",
+        artist: "买辣椒也用卷",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=27b16858279b1d0d71c80913c4b844ce"
+      },
+      {
+        id: 163,
+        title: "芊芊",
+        artist: "回音哥",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9c4f1f8b61d2bb4fd924fb6e37a78d60"
+      },
+      {
+        id: 164,
+        title: "情字难",
+        artist: "糯米Nomi",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1930efecab80f2311727076fda2f26f6"
+      },
+      {
+        id: 165,
+        title: "权御天下",
+        artist: "洛天依",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3207637c583e59e4cfa1a2c7fc806c4a"
+      },
+      {
+        id: 166,
+        title: "汝南",
+        artist: "乔佳旭",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=116a5e69ef64c9da659f7bc5a4cbad95"
+      },
+      {
+        id: 167,
+        title: "上弦之月",
+        artist: "伦桑、萧忆情Alex",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e33acb4854a3f5c9ac7ca23a283de154"
+      },
+      {
+        id: 168,
+        title: "生僻字",
+        artist: "陈柯宇",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a31ab48cb0c2cc39d029ca56395f3b1a"
+      },
+      {
+        id: 169,
+        title: "时间煮雨",
+        artist: "郁可唯",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b7414810d88887f506cd5bae5722caf8"
+      },
+      {
+        id: 170,
+        title: "世间美好与你环环相扣",
+        artist: "柏松",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=1b3d6e1943de1c750869ab6db6f03400"
+      },
+      {
+        id: 171,
+        title: "他他他",
+        artist: "艾辰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2943414d6e4d7c220f846cf77f9f6887"
+      },
+      {
+        id: 172,
+        title: "叹",
+        artist: "黄龄",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e1fea659ea8b8427677d44cd6a60665d"
+      },
+      {
+        id: 173,
+        title: "唐人",
+        artist: "孙子涵",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=683535bb935697947cb72b37836dafc5"
+      },
+      {
+        id: 174,
+        title: "桃花凉",
+        artist: "艾辰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9ecef50ac0fa31159ea35ea496995fb5"
+      },
+      {
+        id: 175,
+        title: "特别的人",
+        artist: "方大同",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0f7a79adaaeeb6ea1da3e19dd637fd73"
+      },
+      {
+        id: 176,
+        title: "跳楼机",
+        artist: "LBI利比（时柏尘）",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d3e23078c8dd32e5e47bf12b537c5f61"
+      },
+      {
+        id: 177,
+        title: "我的将军啊",
+        artist: "半阳",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ed595606772fb952ae15b54abd999217"
+      },
+      {
+        id: 178,
+        title: "我的一个道姑朋友",
+        artist: "以冬",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=dc227446da736e7ef3dcea7429c0abf9"
+      },
+      {
+        id: 179,
+        title: "像我这样的人",
+        artist: "毛不易",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4695b8373c1af8e3262c822bfb5a55bd"
+      },
+      {
+        id: 180,
+        title: "消愁",
+        artist: "毛不易",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0013286d034c9cb6f0f49cd49e57013c"
+      },
+      {
+        id: 181,
+        title: "嚣张",
+        artist: "en",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6e00f68fa602ab8c598eec8710c9cec0"
+      },
+      {
+        id: 182,
+        title: "寻屿",
+        artist: "胜屿",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=bb38de605cad3c5b5aab55f936b5ae65"
+      },
+      {
+        id: 183,
+        title: "痒",
+        artist: "黄龄",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=64a98eb74aa8e8237195cf6584f24866"
+      },
+      {
+        id: 184,
+        title: "一个人挺好",
+        artist: "杨小壮",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=f2a9832cf84e54eb0b14bd6bedad44fe"
+      },
+      {
+        id: 185,
+        title: "一介书生",
+        artist: "叶洛洛、西瓜JUN",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9b48a94bf0af868f50fb4fdbc136a60a"
+      },
+      {
+        id: 186,
+        title: "约定",
+        artist: "周蕙",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6deb42170eef6c62aa2625d171b32995"
+      },
+      {
+        id: 187,
+        title: "最美的伤口",
+        artist: "DJ小鱼儿",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=81618e7ac61fdfd6cc6563d4b7c00637"
+      },
+      {
+        id: 188,
+        title: "醉仙美",
+        artist: "娜美",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2bcb3749b408fbd5181e088649233f4b"
+      },
+      {
+        id: 189,
+        title: "左手指月",
+        artist: "萨顶顶",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ebccde59f97bc06183f3b1a8502b7479"
+      },
+      {
+        id: 190,
+        title: "座位",
+        artist: "于东然",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=d87a09db3166215e5dfd4a30c922509e"
+      },
+      {
+        id: 191,
+        title: "爱殇",
+        artist: "小时姑娘",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=707a4fe62fad89dda2f95b99453ca25b"
+      },
+      {
+        id: 192,
+        title: "安静的稻草人",
+        artist: "吴大文",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=83aeccebd4bd3304b322c4c4a0a903c4"
+      },
+
+      {
+        id: 193,
+        title: "半壶纱",
+        artist: "刘珂矣",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=951ab088c5a08f491471a1296df93707"
+      },
+      {
+        id: 194,
+        title: "半生雪",
+        artist: "七叔",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c13e17480942b2806d6daffad374a1d7"
+      },
+      {
+        id: 195,
+        title: "伯虎说",
+        artist: "伯爵Johnny、唐伯虎Annie",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c9a5e8d4a308946a6a3192fce2a8bc45"
+      },
+      {
+        id: 196,
+        title: "不染",
+        artist: "毛不易",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=08793efeddd055da376e8af81b85a387"
+      },
+      {
+        id: 197,
+        title: "赤伶",
+        artist: "HITA",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=bdd437a3e132df0d63029b38be02b861"
+      },
+      {
+        id: 198,
+        title: "出山",
+        artist: "花粥、王胜娚",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2a846336f30803c4e718428bdc2096a6"
+      },
+      {
+        id: 199,
+        title: "春庭雪",
+        artist: "等什么君",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9630ca74e67d9793a5f68457fcdee9e7"
+      },
+      {
+        id: 200,
+        title: "辞九门回忆",
+        artist: "等什么君",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fbfea270b82c26e1206ff187f9cfc3ef"
+      },
+      {
+        id: 201,
+        title: "赐我",
+        artist: "一只白羊",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ac6d249c3b3835bee3b2fe23f19ee1f2"
+      },
+      {
+        id: 202,
+        title: "熬夜上瘾",
+        artist: "刘奕心",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=cd8874a39869098412141cab0951704a"
+      },
+      {
+        id: 203,
+        title: "大天蓬",
+        artist: "李袁杰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3e817f21eed5c3befaf6b646764c3449"
+      },
+      {
+        id: 204,
+        title: "盗将行",
+        artist: "花粥、马雨阳",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=776373c3219193104ee130de1777786b"
+      },
+      {
+        id: 205,
+        title: "盗墓笔记·十年人间",
+        artist: "李常超",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=abb695dd3590d5b963b4aa25e362a40b"
+      },
+      {
+        id: 206,
+        title: "帝都",
+        artist: "萌萌哒天团",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ce75e846e942df9aab47121ea1801c48"
+      },
+      {
+        id: 207,
+        title: "第三十八年夏至",
+        artist: "河图",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=af1456c0c8a4a2fac6ca640d7c6ac2e0"
+      },
+      {
+        id: 208,
+        title: "凤凰劫",
+        artist: "河图",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=66bc658dbc17b34492c9768c35c8d817"
+      },
+      {
+        id: 209,
+        title: "孤城",
+        artist: "洛先生",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=2cf59abb7a2dc6aef2e43e19a8f9cad2"
+      },
+      {
+        id: 210,
+        title: "关山酒",
+        artist: "等什么君",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=65859e53ec4690a58eb1e727a4aa967d"
+      },
+      {
+        id: 211,
+        title: "广寒宫",
+        artist: "丸子哟",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=830b88e7768c6d6dee8f8fdfa98aa4f9"
+      },
+      {
+        id: 212,
+        title: "归去来兮",
+        artist: "花粥",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5c056fbe2174cdbc768ea665342461d1"
+      },
+      {
+        id: 213,
+        title: "何以歌",
+        artist: "Aki阿杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=26150427b76c3645e77885b98598431b"
+      },
+      {
+        id: 214,
+        title: "红昭愿",
+        artist: "音阙诗听",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=776c90f8c9049f18b3c6f1f102b4c6ab"
+      },
+
+      {
+        id: 215,
+        title: "狐言",
+        artist: "河图、洛天依",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6daa9b262100b745281780bd461c458d"
+      },
+      {
+        id: 216,
+        title: "花灯游",
+        artist: "锦零、凤九",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0cb64509ad3d38c4565d7a1edb11a0f8"
+      },
+      {
+        id: 217,
+        title: "画离弦",
+        artist: "海伦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fe31adeed5e32b5c8716be52c9be5109"
+      },
+      {
+        id: 218,
+        title: "黄梅戏",
+        artist: "慕容晓晓",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=fbefb3a6f63e5348751a232f5571997f"
+      },
+      {
+        id: 219,
+        title: "金玉良缘",
+        artist: "李琦",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=75ea10e7339da290a5d3aa707c4e2713"
+      },
+      {
+        id: 220,
+        title: "九万字",
+        artist: "黄诗扶",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=546ea8cfaad8b4fe95d40d84491799a7"
+      },
+      {
+        id: 221,
+        title: "九张机",
+        artist: "叶炫清",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=06acf0eba49f5db8b7db001695c413f5"
+      },
+      {
+        id: 222,
+        title: "酒肆",
+        artist: "李常超",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=35c889b7818fa6ec750f401ba9a99a73"
+      },
+      {
+        id: 223,
+        title: "来都来了",
+        artist: "黄诗扶",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b0e53d0fd8d5b3a2fadf7839e15a1041"
+      },
+      {
+        id: 224,
+        title: "浪人琵琶",
+        artist: "胡66",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=19c255cf4207c98bd654d4c035e7d522"
+      },
+      {
+        id: 225,
+        title: "浪子闲话",
+        artist: "花僮",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6a1970cb56ebb6354fe36c7fc2eb052f"
+      },
+      {
+        id: 226,
+        title: "离人愁",
+        artist: "李袁杰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=461b301d0ee905d2bb85f66b7d94c214"
+      },
+      {
+        id: 227,
+        title: "离人赋",
+        artist: "云汐",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=321ec3b1bb1d8f1d2efb7a40ac911ca4"
+      },
+      {
+        id: 228,
+        title: "良辰夜",
+        artist: "黄诗扶",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9716fe59d2eafdb8ec7b8b8170180d7f"
+      },
+      {
+        id: 229,
+        title: "梦回还",
+        artist: "呦猫UNEKO",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4d50b541cf0e94466a26e5303c37a3bf"
+      },
+      {
+        id: 230,
+        title: "凉凉",
+        artist: "张碧晨、杨宗纬",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=176e95cb42b14484472d6a379815744d"
+      },
+      {
+        id: 231,
+        title: "莫问归期",
+        artist: "蒋雪儿Snow.J",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=f0e418fb19e8d295d0f78e50ae3b7e30"
+      },
+      {
+        id: 232,
+        title: "木马",
+        artist: "黄慈轩、单九希",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6fe283fc76e562b1218c00b063c2eda7"
+      },
+      {
+        id: 233,
+        title: "难却",
+        artist: "平生不晚",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=f7a633f10a5d49c3433f6e6b492b2462"
+      },
+      {
+        id: 234,
+        title: "孽海记",
+        artist: "黄诗扶",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5934c94d4af4d0ebda99d5ad7d8e17ec"
+      },
+      {
+        id: 235,
+        title: "琵琶行",
+        artist: "奇然",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=0ab355ef75a56a57e1790734b2e26ed9"
+      },
+      {
+        id: 236,
+        title: "千秋迭梦",
+        artist: "陈亦洺、尚辰、镜予歌",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5680e676e3107e72cefc3d6ed7bc65b2"
+      },
+      {
+        id: 237,
+        title: "牵丝戏",
+        artist: "银临、Aki阿杰",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=5e7ff596f7d6021da63af36e91bece4b"
+      },
+      {
+        id: 238,
+        title: "倾尽天下",
+        artist: "河图",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ea9fb432af45302ec8e40ea70c5c75fe"
+      },
+      {
+        id: 239,
+        title: "清明上河图",
+        artist: "李玉刚",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9f7d5a139ebb7128e2cbd703d70c4b5a"
+      },
+      {
+        id: 240,
+        title: "珊瑚说",
+        artist: "小时姑娘",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=7b6541bea83a536aaa521a7ae1c7fe97"
+      },
+      {
+        id: 241,
+        title: "扇子舞",
+        artist: "Vk",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ef32d43751bcfd70399b4e3fa8442695"
+      },
+      {
+        id: 242,
+        title: "谁与归",
+        artist: "艾辰",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=56ded7eeefd758af21edb745fdd9c06e"
+      },
+      {
+        id: 243,
+        title: "沈园外",
+        artist: "阿yueyue",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9b46f3774eec55d47508e93a468ff5fc"
+      },
+      {
+        id: 244,
+        title: "失余年",
+        artist: "阿yueyue",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=dcc1cf039d4bc97b1d107cfddbbe16d7"
+      },
+      {
+        id: 245,
+        title: "霜雪千年",
+        artist: "双笙 (陈元汐)、封茗囧菌",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3caece70f7df3de374c87851d9656a6d"
+      },
+      {
+        id: 246,
+        title: "踏山河",
+        artist: "七叔",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=7fca42617a6d521c04017dc1366c65fd"
+      },
+      {
+        id: 247,
+        title: "叹云兮",
+        artist: "鞠婧祎",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9cbb77b83b8d7d8113c6a60b8230d3e4"
+      },
+      {
+        id: 248,
+        title: "探窗",
+        artist: "国风新语、汐音社、浮生梦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4db8753245114881155eb2e867e00b17"
+      },
+      {
+        id: 249,
+        title: "探清水河",
+        artist: "张云雷",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8854b33a01771ef32635baa7449f16f9"
+      },
+      {
+        id: 250,
+        title: "桃花诺",
+        artist: "邓紫棋",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ff3ba0a7ad50d5bebb2ed7907f15608c"
+      },
+      {
+        id: 251,
+        title: "为龙",
+        artist: "河图",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=c99a7120cf02066e4bd9e5f992ff34e4"
+      },
+      {
+        id: 252,
+        title: "闻到",
+        artist: "黄诗扶",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ed420ea58fda83a16a42ec2802b8a3fd"
+      },
+      {
+        id: 253,
+        title: "下山",
+        artist: "要不要买菜",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=31de13b9181ec8b796b206525cc12c75"
+      },
+      {
+        id: 254,
+        title: "骁",
+        artist: "井胧、井迪儿",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=67c777b8e0c70d55ff4447ba0aafcc50"
+      },
+      {
+        id: 255,
+        title: "小嫦娥",
+        artist: "安子与九妹",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=63ef40f91f7715488dfc1767303cbd14"
+      },
+      {
+        id: 256,
+        title: "小模样",
+        artist: "张小只ya",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=abb226f5a9bc38276b28c60611ae0cf2"
+      },
+      {
+        id: 257,
+        title: "星月落",
+        artist: "浮生梦",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=13afdb27d823d6cc1f61c6d672f23f9b"
+      },
+      {
+        id: 258,
+        title: "循迹",
+        artist: "王子健",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=21b4f0d5666d8e8343214f95afa31da9"
+      },
+      {
+        id: 259,
+        title: "烟火人间",
+        artist: "添儿呗",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=452c5270cf93e8fbf5fe69354bacf034"
+      },
+      {
+        id: 260,
+        title: "一笑江湖",
+        artist: "闻人听書",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3c7414adc8ae25804ac4ab2409f6b5aa"
+      },
+      {
+        id: 261,
+        title: "游山恋",
+        artist: "海伦",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=4345629dcc317d019cc401017c2168f2"
+      },
+      {
+        id: 262,
+        title: "虞兮叹",
+        artist: "闻人听書",
+        type: "3",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8da925f04704696e1f355fe160940dc7"
+      },
+      {
+        id: 263,
+        title: "月光-秦时明月",
+        artist: "胡彦斌",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=3e8d2aacd5a985d61c2892cd4fdd69d5"
+      },
+      {
+        id: 264,
+        title: "云与海",
+        artist: "阿yueyue",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=b2a0d0283a6127d57350962564baf200"
+      },
+      {
+        id: 265,
+        title: "怎叹",
+        artist: "郑鱼",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=9e0f25e65a1a0e07c14bc31d1feaae69"
+      },
+      {
+        id: 266,
+        title: "长安姑娘",
+        artist: "阿yueyue",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=a95990e1f6f05af727253b41d69d3f77"
+      },
+      {
+        id: 267,
+        title: "长安忆",
+        artist: "双笙",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=6355da97c4e37ab9f66ac120d570fb4e"
+      },
+      {
+        id: 268,
+        title: "信仰",
+        artist: "张信哲",
+        type: "2",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=7bc178f32ad57d4aeaa1ca545e8710c1"
+      },
+      {
+        id: 269,
+        title: "谪仙",
+        artist: "伊格赛听、叶里",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=ed7d9a4dcc4a59395784c5697a082726"
+      },
+      {
+        id: 270,
+        title: "知否知否",
+        artist: "胡夏、郁可唯",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=e26b3213368afb768cad99004357c079"
+      },
+      {
+        id: 271,
+        title: "只对你有感觉",
+        artist: "飞轮海、田馥甄",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=180d6e82a1aefedf10be440454956e1f"
+      },
+      {
+        id: 272,
+        title: "泡沫",
+        artist: "邓紫棋",
+        type: "1",
+        url: "https://www.33ve.com/plug/down.php?ac=music&id=8574d02543b5f902469fb4e27e3a350d"
+      },
+    ];
+
+    // 获取DOM元素
+    const playlistElement = document.getElementById('playlist');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const nowPlayingElement = document.getElementById('nowPlaying');
+    const paginationElement = document.getElementById('pagination');
+    const pageSizeElement = document.getElementById('pageSize');
+
+    // 分页相关变量
+    let currentPage = 1;
+    let pageSize = 10;
+    let currentSongIndex = -1;
+
+    // 生成歌曲列表
+    function renderPlaylist() {
+    // 计算当前页的歌曲
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, songs.length);
+    const pageSongs = songs.slice(startIndex, endIndex);
+    
+    playlistElement.innerHTML = '';
+    
+    pageSongs.forEach((song, index) => {
+      const globalIndex = startIndex + index;
+      const songElement = document.createElement('div');
+      songElement.className = 'song-item';
+      songElement.innerHTML = `
+        <div class="song-number">${globalIndex + 1}</div>
+        <div class="song-info">
+          <div class="song-title">${song.title}</div>
+          <div class="song-artist">${song.artist}</div>
+        </div>
+        <div class="song-duration song-type-${song.type}">${songType[song.type]}</div>
+      `;
+      
+      songElement.addEventListener('click', () => playSong(globalIndex));
+      playlistElement.appendChild(songElement);
+    });
+    
+    // 更新分页控件
+    renderPagination();
+    
+    // 更新播放列表UI
+    updatePlaylistUI();
+  }
+
+    // 播放歌曲
+    function playSong(index) {
+      // 更新当前播放索引
+      currentSongIndex = index;
+
+      // 更新歌曲信息
+      const song = songs[index];
+      audioPlayer.src = song.url;
+
+      // 更新正在播放显示
+      nowPlayingElement.textContent = `正在播放: ${song.title} - ${song.artist}`;
+
+      // 播放音频
+      audioPlayer.play().catch(error => {
+        console.error('播放失败:', error);
+        nowPlayingElement.textContent = '播放失败，请检查音频链接';
+      });
+
+      // 更新歌曲列表样式
+      updatePlaylistUI();
+    }
+
+    // 更新播放列表UI
+    function updatePlaylistUI() {
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, songs.length);
+
+      const songItems = document.querySelectorAll('.song-item');
+      songItems.forEach((item, index) => {
+        const globalIndex = startIndex + index;
+        if (globalIndex === currentSongIndex) {
+          item.classList.add('playing');
+        } else {
+          item.classList.remove('playing');
+        }
+      });
+    }
+
+    // 渲染分页控件
+    function renderPagination() {
+      const totalPages = Math.ceil(songs.length / pageSize);
+
+      paginationElement.innerHTML = `
+        <button id="firstPage" ${currentPage === 1 ? 'disabled' : ''}>首页</button>
+        <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+       
+        <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+        <button id="lastPage" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>
+      `;
+
+      // 绑定分页按钮事件
+      document.getElementById('firstPage').addEventListener('click', () => {
+        currentPage = 1;
+        renderPlaylist();
+      });
+
+      document.getElementById('prevPage').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderPlaylist();
+        }
+      });
+
+      document.getElementById('nextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(songs.length / pageSize);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderPlaylist();
+        }
+      });
+
+      document.getElementById('lastPage').addEventListener('click', () => {
+        currentPage = Math.ceil(songs.length / pageSize);
+        renderPlaylist();
+      });
+    }
+
+    // 监听每页显示数量变化
+    pageSizeElement.addEventListener('change', (e) => {
+      pageSize = parseInt(e.target.value);
+      currentPage = 1; // 重置到第一页
+      renderPlaylist();
+    });
+
+    // 监听音频播放结束事件
+    audioPlayer.addEventListener('ended', () => {
+      // 自动播放下一首
+      if (currentSongIndex < songs.length - 1) {
+        playSong(currentSongIndex + 1);
+        // 如果下一首在另一页，切换到对应页面
+        const nextPage = Math.floor(currentSongIndex / pageSize) + 1;
+        if (nextPage !== currentPage) {
+          currentPage = nextPage;
+          renderPlaylist();
+        }
+      } else {
+        nowPlayingElement.textContent = '播放列表已结束';
+      }
+    });
+
+    // 初始化
+    // 使用 DOMContentLoaded 确保 songs.js 已加载
+    document.addEventListener('DOMContentLoaded', function () {
+      renderPlaylist();
+    });
+  </script>
+</body>
+
+</html>
